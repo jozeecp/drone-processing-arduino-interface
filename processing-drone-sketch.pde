@@ -5,9 +5,10 @@ Processing interface model drone for faster and cheaper protyping with Arduino
 
 Previous Version:
         v0.0                  // 4/23/17, drone built. speed control ready
+        v0.1                  // 4/24/17, identifies direction based on speed ration, but not yaw
 
 Current Version:
-        v0.1                  // 4/24/17, identifies direction of motion based on speed ratios, shows arrows
+        v0.2                  // 4/24/17, text input for real time speed adjustment
 */
 
 // variables for adjustment using arrow keys
@@ -34,28 +35,47 @@ int rpm3 = 1;
 int rpm4 = 1;
 int rpmFactor = 1000;
 
-// direction arrow opacities
 int opacity1 = 0;
 int opacity2 = 0;
 int opacity3 = 0;
 int opacity4 = 0;
 
-// direction of motion
 String direction = "up";
+int setSpeed1;
+int setSpeed2;
+int setSpeed3;
+int setSpeed4;
+
+
+import controlP5.*;
+
+ControlP5 cp5;
+
+String textValue = "";
 
 void setup() {
-  size(1000, 1000);
+  size(1000, 1500);
+
+  PFont font = createFont("arial",20);
+  cp5 = new ControlP5(this);
+  motorInput();
 }
 
 void draw() {
   background(0);
   body();                              // draws frame of the body
 
+  setSpeed1 = int(cp5.get(Textfield.class,"motor1").getText());
+  setSpeed2 = int(cp5.get(Textfield.class,"motor2").getText());
+  setSpeed3 = int(cp5.get(Textfield.class,"motor3").getText());
+  setSpeed4 = int(cp5.get(Textfield.class,"motor4").getText());
+
+
   // set motor speeds
-  speed1 = 8;
-  speed2 = 1;
-  speed3 = 8;
-  speed4 = 1;
+  speed1 = setSpeed1;
+  speed2 = setSpeed2;
+  speed3 = setSpeed3;
+  speed4 = setSpeed4;
 
   // write speeds to motors
   motor1(speed1);
@@ -70,13 +90,13 @@ void draw() {
   print("    ");
   print(direction);
   print("    ");
+  print(cp5.get(Textfield.class,"motor1").getText());
+  print("    ");
   println(c);
 
-  // function that dtermines direction
   direction();
 }
 
-// frame of drone
 void body() {
   noStroke();
   fill(100);
@@ -180,7 +200,6 @@ void keyPressed() {
   }
 }
 
-//draws arrows
 void arrowUp(int f) {
   fill(85, 204, 0, map(f, 0, 10, 0, 255));
   rect(450, 120, 100, 100);
@@ -196,16 +215,15 @@ void arrowDown(int g) {
 void arrowLeft(int f) {
   fill(85, 204, 0, map(f, 0, 10, 0, 255));
   rect(120, 450, 100, 100);
-  triangle(120, 400, 50, height/2, 120, 600);
+  triangle(120, 400, 50, height/3, 120, 600);
 }
 
 void arrowRight(int f) {
   fill(85, 204, 0, map(f, 0, 10, 0, 255));
   rect(780, 450, 100, 100);
-  triangle(880, 400, 950, height/2, 880, 600);
+  triangle(880, 400, 950, height/3, 880, 600);
 }
 
-//determines direction of motion on xy plane
 void direction() {
   if ((speed1 + speed2)/2 < (speed3 + speed4)/2 && speed1 == speed2 && speed3 == speed4) {
     direction = "forward";
@@ -228,5 +246,38 @@ void direction() {
     direction = "centered";
   }
   fill(255);
-  text(direction, width/2, height/2);
+  text(direction, width/2, height/3);
+}
+
+void motorInput(){
+    PFont font = createFont("arial",20);
+
+  cp5.addTextfield("motor1")
+     .setPosition(20,1200)
+     .setSize(200,40)
+     .setFont(font)
+     .setFocus(true)
+     .setColor(color(255,0,0))
+     ;
+  cp5.addTextfield("motor2")
+     .setPosition(250,1200)
+     .setSize(200,40)
+     .setFont(font)
+     .setFocus(true)
+     .setColor(color(255,0,0))
+        ;
+   cp5.addTextfield("motor3")
+     .setPosition(20,1400)
+     .setSize(200,40)
+     .setFont(font)
+     .setFocus(true)
+     .setColor(color(255,0,0))
+     ;
+   cp5.addTextfield("motor4")
+     .setPosition(250,1400)
+     .setSize(200,40)
+     .setFont(font)
+     .setFocus(true)
+     .setColor(color(255,0,0))
+     ;
 }
