@@ -4,15 +4,15 @@ By Jose Catarino, 2017
 Processing interface model drone for faster and cheaper protyping with Arduino
 
 Previous Version:
-        N/A
+        v0.0                  // 4/23/17, drone built. speed control ready
 
 Current Version:
-        v0.0                  // 4/23/17, drone built. speed control ready
+        v0.1                  // 4/24/17, identifies direction of motion based on speed ratios, shows arrows
 */
 
 // variables for adjustment using arrow keys
-int arrowX = 1;
-int arrowY = 50;
+int arrowX = 0;
+int arrowY = 0;
 
 float c = 0;                               // rotation constant
 
@@ -34,6 +34,14 @@ int rpm3 = 1;
 int rpm4 = 1;
 int rpmFactor = 1000;
 
+// direction arrow opacities
+int opacity1 = 0;
+int opacity2 = 0;
+int opacity3 = 0;
+int opacity4 = 0;
+
+// direction of motion
+String direction = "up";
 
 void setup() {
   size(1000, 1000);
@@ -44,10 +52,10 @@ void draw() {
   body();                              // draws frame of the body
 
   // set motor speeds
-  speed1 = allSpeed;
-  speed2 = allSpeed;
-  speed3 = 4;
-  speed4 = allSpeed;
+  speed1 = 8;
+  speed2 = 1;
+  speed3 = 8;
+  speed4 = 1;
 
   // write speeds to motors
   motor1(speed1);
@@ -58,9 +66,17 @@ void draw() {
   // spin
   c += .01;
 
+  print(arrowY);
+  print("    ");
+  print(direction);
+  print("    ");
   println(c);
+
+  // function that dtermines direction
+  direction();
 }
 
+// frame of drone
 void body() {
   noStroke();
   fill(100);
@@ -153,13 +169,64 @@ void motor4(int e) {
 void keyPressed() {
   if (key == CODED) {
     if (keyCode == UP) {
-      arrowY -= 2;
+      arrowY -= 1;
     } else if (keyCode == DOWN) {
-      arrowY += 2;
+      arrowY += 1;
     } else if (keyCode == RIGHT) {
-      arrowX += 2;
+      arrowX += 1;
     } else if (keyCode == LEFT) {
-      arrowX -= 2;
+      arrowX -= 1;
     }
   }
+}
+
+//draws arrows
+void arrowUp(int f) {
+  fill(85, 204, 0, map(f, 0, 10, 0, 255));
+  rect(450, 120, 100, 100);
+  triangle(400, 120, width/2, 50, 600, 120);
+}
+
+void arrowDown(int g) {
+  fill(85, 204, 0, map(g, 0, 10, 0, 255));
+  rect(450, 780, 100, 100);
+  triangle(400, 880, width/2, 950, 600, 880);
+}
+
+void arrowLeft(int f) {
+  fill(85, 204, 0, map(f, 0, 10, 0, 255));
+  rect(120, 450, 100, 100);
+  triangle(120, 400, 50, height/2, 120, 600);
+}
+
+void arrowRight(int f) {
+  fill(85, 204, 0, map(f, 0, 10, 0, 255));
+  rect(780, 450, 100, 100);
+  triangle(880, 400, 950, height/2, 880, 600);
+}
+
+//determines direction of motion on xy plane
+void direction() {
+  if ((speed1 + speed2)/2 < (speed3 + speed4)/2 && speed1 == speed2 && speed3 == speed4) {
+    direction = "forward";
+    arrowUp(3);
+
+  }
+  if ((speed1 + speed2)/2 > (speed3 + speed4)/2 && speed1 == speed2 && speed3 == speed4) {
+    direction = "backward";
+    arrowDown(3);
+  }
+  if ((speed1 + speed3)/2 < (speed2 + speed4)/2 && speed1 == speed3 && speed2 == speed4) {
+    direction = "left";
+    arrowLeft(3);
+  }
+  if ((speed1 + speed3)/2 > (speed2 + speed4)/2 && speed1 == speed3 && speed2 == speed4) {
+    direction = "right";
+    arrowRight(3);
+  }
+  if (speed1 == speed2 && speed2 == speed3 && speed3 == speed4) {
+    direction = "centered";
+  }
+  fill(255);
+  text(direction, width/2, height/2);
 }
