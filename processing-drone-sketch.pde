@@ -6,9 +6,10 @@ Processing interface model drone for faster and cheaper protyping with Arduino
 Previous Version:
         v0.0                  // 4/23/17, drone built. speed control ready
         v0.1                  // 4/24/17, identifies direction based on speed ration, but not yaw
+        v0.2                  // 4/24/17, text input for real time speed adjustment
 
 Current Version:
-        v0.2                  // 4/24/17, text input for real time speed adjustment
+        v0.3                  // 4/24/17, added yaw movement recognition and stability check
 */
 
 // variables for adjustment using arrow keys
@@ -33,7 +34,7 @@ int rpm1 = 1;
 int rpm2 = 1;
 int rpm3 = 1;
 int rpm4 = 1;
-int rpmFactor = 1000;
+int rpmFactor = 500;
 
 int opacity1 = 0;
 int opacity2 = 0;
@@ -65,6 +66,7 @@ void draw() {
   background(0);
   body();                              // draws frame of the body
 
+  // read from
   setSpeed1 = int(cp5.get(Textfield.class,"motor1").getText());
   setSpeed2 = int(cp5.get(Textfield.class,"motor2").getText());
   setSpeed3 = int(cp5.get(Textfield.class,"motor3").getText());
@@ -224,26 +226,61 @@ void arrowRight(int f) {
   triangle(880, 400, 950, height/3, 880, 600);
 }
 
+void arrowRotLeft(int f) {
+  fill(85, 204, 0, map(f, 0, 10, 0, 255));
+  rect(450, 120, 100, 100);
+  triangle(450, 70, 380, 170, 450, 270);
+}
+
+void arrowRotRight(int f) {
+  fill(85, 204, 0, map(f, 0, 10, 0, 255));
+  rect(450, 120, 100, 100);
+  triangle(550, 70, 620, 170, 550, 270);
+}
+void unstableSign(int f) {
+  fill(255, 0 , 0, map(f, 0, 10, 0, 255));
+  rect(450, 120, 100, 100);
+  triangle(400, 120, width/2, 50, 600, 120);
+  rect(450, 780, 100, 100);
+  triangle(400, 880, width/2, 950, 600, 880);
+  rect(120, 450, 100, 100);
+  triangle(120, 400, 50, height/3, 120, 600);
+  rect(780, 450, 100, 100);
+  triangle(880, 400, 950, height/3, 880, 600);
+}
+
 void direction() {
   if ((speed1 + speed2)/2 < (speed3 + speed4)/2 && speed1 == speed2 && speed3 == speed4) {
     direction = "forward";
     arrowUp(3);
 
   }
-  if ((speed1 + speed2)/2 > (speed3 + speed4)/2 && speed1 == speed2 && speed3 == speed4) {
+  else if ((speed1 + speed2)/2 > (speed3 + speed4)/2 && speed1 == speed2 && speed3 == speed4) {
     direction = "backward";
     arrowDown(3);
   }
-  if ((speed1 + speed3)/2 < (speed2 + speed4)/2 && speed1 == speed3 && speed2 == speed4) {
+  else if ((speed1 + speed3)/2 < (speed2 + speed4)/2 && speed1 == speed3 && speed2 == speed4) {
     direction = "left";
     arrowLeft(3);
   }
-  if ((speed1 + speed3)/2 > (speed2 + speed4)/2 && speed1 == speed3 && speed2 == speed4) {
+  else if ((speed1 + speed3)/2 > (speed2 + speed4)/2 && speed1 == speed3 && speed2 == speed4) {
     direction = "right";
     arrowRight(3);
   }
-  if (speed1 == speed2 && speed2 == speed3 && speed3 == speed4) {
+  else if (speed1 == speed2 && speed2 == speed3 && speed3 == speed4) {
     direction = "centered";
+  }
+  else if ((speed2 + speed3)/2 > (speed1 + speed4)/2 && speed1 == speed4 && speed2 == speed3) {
+    direction = "rotating right";
+    arrowRotRight(3);
+  }
+  else if ((speed1 + speed4)/2 > (speed2 + speed3)/2 && speed1 == speed4 && speed2 == speed3) {
+    direction = "rotating left";
+    arrowRotLeft(3);
+  }
+  else {
+    direction = "UNSTABLE";
+    unstableSign(3);
   }
   fill(255);
   text(direction, width/2, height/3);
